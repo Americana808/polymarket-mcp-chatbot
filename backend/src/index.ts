@@ -916,6 +916,71 @@ app.get("/market-probabilities", async (req, res) => {
   }
 });
 
+// Recent trades endpoint (limited by underlying tool to ~10 trades)
+// Query params: limit, side=BUY|SELL, minTotal
+app.get("/recent-trades", async (req, res) => {
+  const limit = Math.min(parseInt((req.query.limit as string) || "10", 10) || 10, 50);
+  const sideFilter = (req.query.side as string)?.toUpperCase();
+  const minTotal = parseFloat((req.query.minTotal as string) || "0") || 0;
+  console.log("➡️  /recent-trades request", { query: req.query, mcpConnected: !!mcpClient });
+
+  if (!mcpClient) {
+    return res.status(503).json({ error: "MCP client not connected", trades: [] });
+  }
+
+  try {
+    // Call get_trades tool; underlying implementation appears capped ~10
+    const toolResult = await mcpClient.callTool({
+      name: "get_trades",
+      arguments: { limit }
+    });
+    console.log("🔧 get_trades raw content", toolResult.content);
+
+    const text = Array.isArray(toolResult.content) && toolResult.content[0] && (toolResult.content[0] as any).text
+      ? (toolResult.content[0] as any).text as string
+      : "";
+
+    const trades: Array<{ side: string; size: number; price: number; time: string }> = [];
+    const tradeRegex = /\n?(\d+)\. .*?(BUY|SELL) ([\d\.]+) @ \$(\d*\.?\d+)\n\s*Time: ([^\n]+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = tradeRegex.exec(text)) !== null) {
+      const [, , side, sizeStr, priceStr, timeStr] = match;
+      const size = parseFloat(sizeStr);
+      const price = parseFloat(priceStr);
+      trades.push({ side, size, price, time: timeStr.trim() });
+    }
+
+    let filtered = trades;
+    if (sideFilter === "BUY" || sideFilter === "SELL") {
+      filtered = filtered.filter(t => t.side === sideFilter);
+    }
+    if (minTotal > 0) {
+      filtered = filtered.filter(t => (t.size * t.price) >= minTotal);
+    }
+
+    console.log("✅ /recent-trades parsed", { returned: filtered.length });
+    res.json({ trades: filtered.slice(0, limit), total: filtered.length });
+  } catch (err: any) {
+    console.error("/recent-trades error", err);
+    res.status(500).json({ error: err?.message || "Failed to fetch trades", trades: [] });
+  }
+});
+
+// Tool schema inspection endpoint
+app.get("/tool-schema", async (req, res) => {
+  const name = (req.query.name as string) || "";
+  if (!name) return res.status(400).json({ error: "Missing name query param" });
+  if (!mcpClient) return res.status(503).json({ error: "MCP client not connected" });
+  try {
+    const toolsResponse = await mcpClient.listTools();
+    const tool = toolsResponse.tools.find(t => t.name === name);
+    if (!tool) return res.status(404).json({ error: "Tool not found", name });
+    res.json({ name: tool.name, description: tool.description, inputSchema: tool.inputSchema });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || "Unknown error" });
+  }
+});
+
 // Start Express server
 const server = app.listen(PORT, () => {
   console.log(`✅ HTTP server running on port ${PORT}`);
@@ -985,8 +1050,9 @@ async function startup() {
       );
     }
   } catch (error) {
-    console.error("❌ Startup failed:", error);
-    process.exit(1);
+    console.error("❌ Startup failed to connect to MCP:", error);
+    console.warn("⚠️  Continuing to run HTTP server without MCP. Endpoints that require MCP will return 503 until connected.");
+    // Do not exit; allow OAuth callback or later reconnection to succeed.
   }
 }
 

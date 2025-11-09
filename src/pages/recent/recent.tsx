@@ -13,6 +13,13 @@ export function Recent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [side, setSide] = useState<"ALL" | "BUY" | "SELL">("ALL");
+  // Min total filter (empty string means no filter)
+  const [minTotalInput, setMinTotalInput] = useState<string>("");
+  const minTotal = (() => {
+    if (minTotalInput === "") return 0;
+    const n = Number(minTotalInput);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  })();
 
   const API_BASE =
     (import.meta as any).env?.VITE_BACKEND_URL || "http://localhost:5090";
@@ -22,9 +29,10 @@ export function Recent() {
     const run = async () => {
       try {
         setLoading(true);
-        const url = new URL(`${API_BASE}/recent-trades`);
-        url.searchParams.set("limit", "10");
-        if (side !== "ALL") url.searchParams.set("side", side);
+  const url = new URL(`${API_BASE}/recent-trades`);
+  url.searchParams.set("limit", "10");
+  if (side !== "ALL") url.searchParams.set("side", side);
+  if (minTotal > 0) url.searchParams.set("minTotal", String(minTotal));
         const res = await fetch(url.toString(), { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -39,7 +47,7 @@ export function Recent() {
     };
     run();
     return () => controller.abort();
-  }, [API_BASE, side]);
+  }, [API_BASE, side, minTotal]);
 
   return (
     <div className="min-h-dvh bg-black text-white">
@@ -89,17 +97,49 @@ export function Recent() {
               results.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-zinc-400">Side</label>
-            <select
-              value={side}
-              onChange={(e) => setSide(e.target.value as any)}
-              className="px-2 py-1 rounded-md bg-black border border-white/20 text-white"
-            >
-              <option value="ALL">All</option>
-              <option value="BUY">Buy</option>
-              <option value="SELL">Sell</option>
-            </select>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-zinc-400">Side</label>
+              <select
+                value={side}
+                onChange={(e) => setSide(e.target.value as any)}
+                className="px-2 py-1 rounded-md bg-black border border-white/20 text-white"
+              >
+                <option value="ALL">All</option>
+                <option value="BUY">Buy</option>
+                <option value="SELL">Sell</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="minTotal" className="text-xs text-zinc-400">Min Total ($)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="minTotal"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="(none)"
+                  value={minTotalInput}
+                  onChange={(e) => {
+                    const raw = e.target.value.trim();
+                    if (raw === "") { setMinTotalInput(""); return; }
+                    if (/^\d+$/.test(raw)) setMinTotalInput(raw);
+                  }}
+                  onBlur={() => {
+                    if (minTotalInput !== "" && !/^\d+$/.test(minTotalInput)) {
+                      setMinTotalInput("");
+                    }
+                  }}
+                  className="px-2 py-1 w-28 rounded-md bg-black border border-white/20 text-white placeholder:text-zinc-600"
+                />
+                {minTotalInput !== "" && minTotal > 0 && (
+                  <button
+                    onClick={() => setMinTotalInput("")}
+                    className="text-xs px-2 py-1 rounded-md bg-zinc-800 border border-white/20 hover:bg-zinc-700"
+                  >Clear</button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
