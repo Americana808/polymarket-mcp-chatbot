@@ -4,7 +4,7 @@ This guide shows only what you need to deploy.
 
 ## Prerequisites
 
-- Node.js 18+ (Bun too)
+- Node.js 18+ (with Bun)
 - Anthropic API key (Claude)
 - Smithery account (for MCP OAuth)
 - NewsAPI key (for news features)
