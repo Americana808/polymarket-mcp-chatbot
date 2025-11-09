@@ -7,7 +7,7 @@ This guide shows only what you need to deploy.
 - Node.js 18+ (Bun too)
 - Anthropic API key (Claude)
 - Smithery account (for MCP OAuth)
-- Optional: NewsAPI key (for news features)
+- NewsAPI key (for news features)
 
 ## Project Layout
 
@@ -49,3 +49,8 @@ bun run dev
 ## License
 
 This project is licensed under the Apache License 2.0.
+
+## Credits:
+https://github.com/aryankeluskar/polymarket-mcp/blob/master/src/index.ts
+https://newsapi.org/docs/get-started#search
+
