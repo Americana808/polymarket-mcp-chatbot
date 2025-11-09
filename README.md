@@ -70,12 +70,15 @@ PORT=3001
 ```bash
 cd backend
 bun run dev
+bun add @fortawesome/react-fontawesome@latest @fortawesome/fontawesome-svg-core @fortawesome/free-regular-svg-icons @fortawesome/free-solid-svg-icons
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
 cd frontend
 bun run dev
+bun add recharts date-fn
+bun add -D @types/date-fns
 ```
 
 The application will open at `http://localhost:5173`
