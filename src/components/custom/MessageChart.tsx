@@ -7,7 +7,9 @@ interface MessageChartProps {
 }
 
 // Function to detect chart triggers in Claude's messages
-function detectChartTriggers(content: string): { type: string; query?: string } | null {
+function detectChartTriggers(
+  content: string
+): { type: string; query?: string } | null {
   const lower = content.toLowerCase();
   
   // Debug what we're checking
@@ -66,11 +68,14 @@ function detectChartTriggers(content: string): { type: string; query?: string } 
 }
 
 export const MessageChart: React.FC<MessageChartProps> = ({ content }) => {
-  const [chartTrigger, setChartTrigger] = useState<{ type: string; query?: string } | null>(null);
+  const [chartTrigger, setChartTrigger] = useState<{
+    type: string;
+    query?: string;
+  } | null>(null);
 
   useEffect(() => {
     // Only check for chart triggers in complete messages (not while streaming)
-    if (content && !content.includes('...') && content.length > 50) {
+    if (content && !content.includes("...") && content.length > 50) {
       const trigger = detectChartTriggers(content);
       
       // Debug logging
@@ -92,7 +97,7 @@ export const MessageChart: React.FC<MessageChartProps> = ({ content }) => {
   if (!finalTrigger) return null;
 
   return (
-    <div className="mt-6 border rounded-lg p-4 bg-muted/30">
+    <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.02] p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
         <span className="text-sm font-medium text-muted-foreground">

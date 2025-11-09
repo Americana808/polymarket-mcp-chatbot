@@ -101,7 +101,7 @@ export const MarketProbabilityChart: React.FC<ProbabilityChartProps> = ({ query,
       </h3>
       
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+        <BarChart data={data} margin={{ top: 5, right: 5, left: 85, bottom: 120 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
             dataKey="name" 

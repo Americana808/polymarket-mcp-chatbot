@@ -1,134 +1,172 @@
-import { useEffect, useMemo, useState } from "react";
-import { extractNewsKeywords } from "@/lib/extract-keywords";
+import { useEffect, useState } from "react";
+import { extractNewsKeywords } from "../../lib/extract-keywords";
 
-type Article = {
+interface Article {
   title: string;
   url: string;
-  source: string;
-  published_at: string;
-  author?: string | null;
-  description?: string | null;
-};
+  source?: string;
+  description?: string;
+  publishedAt?: string;
+  published_at?: string;
+}
 
 interface RelatedNewsProps {
-  query: string;
+  seed?: string; // assistant or user text seed
+  explicitQuery?: string; // overrides derived keywords
   limit?: number;
-  autoOpen?: boolean; // Auto-expand on dashboard
+  auto?: boolean; // auto fetch on mount if query derivable
+  className?: string;
+  showQuery?: boolean; // display 'query: ...' label
+  preferSeedFirst?: boolean; // control derivation precedence
 }
 
-function formatDate(iso?: string) {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleDateString();
-  } catch {
-    return iso;
-  }
-}
-
-export function RelatedNews({ query, limit = 2, autoOpen = false }: RelatedNewsProps) {
-  const [open, setOpen] = useState(autoOpen);
+export function RelatedNews({
+  seed,
+  explicitQuery,
+  limit = 6,
+  auto = true,
+  className,
+  showQuery = true,
+  preferSeedFirst = true,
+}: RelatedNewsProps) {
+  const [query, setQuery] = useState<string>("");
+  const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [articles, setArticles] = useState<Article[] | null>(null);
-
-  // Extract relevant keywords from the query instead of using the full text
-  const q = useMemo(() => {
-    let seed = "";
-    try {
-      seed = localStorage.getItem("latestUserText") || "";
-    } catch {}
-    const keywords = extractNewsKeywords(query, { userSeed: seed });
-    return keywords.slice(0, 500); // Cap at 500 chars for URL safety
-  }, [query]);
 
   useEffect(() => {
-    if (!open || !q) return;
+    if (explicitQuery) {
+      const safe = explicitQuery
+        .replace(/<\/?[^>]+>/g, " ")
+        .replace(/&[a-z]+;/gi, " ")
+        .replace(/[^\w\s$-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 120);
+      setQuery(safe);
+      return;
+    }
+    if (seed) {
+      let userSeed = "";
+      try {
+        userSeed = localStorage.getItem("latestUserText") || "";
+      } catch {}
+      let derived = "";
+      if (preferSeedFirst) {
+        // Derive primarily from assistant seed, with userSeed as hint
+        derived = extractNewsKeywords(seed, { userSeed });
+        if (!derived || derived.trim().length === 0) {
+          const fallback = extractNewsKeywords(userSeed || "");
+          if (fallback) derived = fallback;
+        }
+      } else {
+        // Prefer user input first, fallback to assistant seed
+        const userFirst = extractNewsKeywords(userSeed || "");
+        derived =
+          userFirst && userFirst.trim().length > 0
+            ? userFirst
+            : extractNewsKeywords(seed, { userSeed });
+      }
 
-    let cancelled = false;
-    async function run() {
+      // sanitize any leftover markup just in case
+      const safe = derived
+        .replace(/<\/?[^>]+>/g, " ")
+        .replace(/&[a-z]+;/gi, " ")
+        .replace(/[^\w\s$-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 120);
+      setQuery(safe);
+    }
+  }, [seed, explicitQuery]);
+
+  useEffect(() => {
+    if (!auto) return;
+    if (!query || query.trim().length < 2) return;
+
+    let abort = false;
+    async function fetchArticles() {
       setLoading(true);
       setError(null);
-      console.log(`[RelatedNews] Fetching news for query: "${q}"`);
       try {
-        const proto = window.location.protocol;
+        const params = new URLSearchParams({ q: query, limit: String(limit) });
+        const proto = window.location.protocol === "https:" ? "https" : "http";
         const host = window.location.hostname;
-        const port = 5090; // backend default
-        const url = new URL(`${proto}//${host}:${port}/news`);
-        url.searchParams.set("q", q);
-        url.searchParams.set("limit", String(limit));
-        
-        console.log(`[RelatedNews] Fetching from: ${url.toString()}`);
-        const resp = await fetch(url.toString());
-        
-        if (!resp.ok) {
-          const errorText = await resp.text();
-          console.error(`[RelatedNews] Error response:`, errorText);
-          throw new Error(`${resp.status} ${resp.statusText}`);
+        const base = `${proto}://${host}:5090`;
+        // Debug logs help validate the derived query
+        if (typeof window !== "undefined" && (window as any).console) {
+          try {
+            console.log(
+              `[RelatedNews] q="${query}" -> ${base}/news?${params.toString()}`
+            );
+          } catch {}
         }
-        
-        const data = await resp.json();
-        console.log(`[RelatedNews] Received ${data.articles?.length || 0} articles`);
-        if (!cancelled) setArticles(data.articles || []);
+        const res = await fetch(`${base}/news?${params.toString()}`);
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const data = await res.json();
+        if (!abort) {
+          setArticles(data.articles || []);
+        }
       } catch (e: any) {
-        console.error(`[RelatedNews] Fetch error:`, e);
-        if (!cancelled) setError(e?.message || "Failed to load news");
+        if (!abort) setError(e.message || "Failed to fetch news");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!abort) setLoading(false);
       }
     }
-    run();
+    fetchArticles();
     return () => {
-      cancelled = true;
+      abort = true;
     };
-  }, [open, q, limit]);
+  }, [query, limit, auto]);
 
   return (
-    <div className="mt-3 border-t pt-3">
-      <button
-        className="text-sm text-blue-600 hover:underline"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {open ? "Hide related news" : "Show related news"}
-      </button>
-      {open && (
-        <div className="mt-2 space-y-2">
-          {q && (
-            <div className="text-xs text-gray-400 italic">
-              Searching for: {q.length > 100 ? q.slice(0, 100) + "..." : q}
-            </div>
-          )}
-          {loading && <div className="text-sm text-gray-500">Loading…</div>}
-          {error && (
-            <div className="text-sm text-red-600">{error}</div>
-          )}
-          {!loading && !error && articles && articles.length === 0 && (
-            <div className="text-sm text-gray-500">No related articles found.</div>
-          )}
-          {!loading && !error && articles && articles.length > 0 && (
-            <ul className="list-disc pl-5 space-y-1">
-              {articles.map((a, i) => (
-                <li key={i} className="text-sm">
-                  <a
-                    href={a.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline"
-                    title={a.description || undefined}
-                  >
-                    {a.title}
-                  </a>
-                  <span className="text-gray-500 ml-2">
-                    {a.source ? `(${a.source}` : "(Article"}
-                    {a.published_at ? ` · ${formatDate(a.published_at)}` : ""}
-                    {")"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+    <div className={className}>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold tracking-wide text-zinc-300 uppercase">
+          Related News
+        </h3>
+        {showQuery && query && (
+          <span className="text-[10px] text-zinc-500">query: {query}</span>
+        )}
+      </div>
+      {loading && (
+        <div className="text-xs text-zinc-400 animate-pulse">
+          Loading articles…
         </div>
       )}
+      {error && <div className="text-xs text-red-400">{error}</div>}
+      {!loading && articles.length === 0 && !error && (
+        <div className="text-xs text-zinc-500">No articles found.</div>
+      )}
+      <ul className="grid sm:grid-cols-2 gap-3 mt-2">
+        {articles.map((a, i) => (
+          <li
+            key={i}
+            className="group border border-zinc-800 rounded-lg p-3 hover:bg-zinc-900/70 transition-colors"
+          >
+            <a
+              href={a.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col gap-1"
+            >
+              <span className="text-xs font-medium text-indigo-300 group-hover:text-indigo-400 line-clamp-2">
+                {a.title}
+              </span>
+              {a.source && (
+                <span className="text-[10px] text-zinc-500">{a.source}</span>
+              )}
+              {(a.publishedAt || (a as any).published_at) && (
+                <span className="text-[10px] text-zinc-600">
+                  {new Date(
+                    (a.publishedAt || (a as any).published_at)!
+                  ).toLocaleDateString()}
+                </span>
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-

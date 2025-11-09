@@ -4,10 +4,10 @@ dotenv.config();
 
 export interface SearchNewsParams {
   query: string;
-  from?: string; // ISO date string
-  to?: string;   // ISO date string
-  limit?: number; // 1-100 (NewsAPI pageSize max 100)
-  language?: string; // e.g., 'en'
+  from?: string;
+  to?: string;
+  limit?: number;
+  language?: string;
   sortBy?: "relevancy" | "popularity" | "publishedAt";
 }
 
@@ -40,7 +40,7 @@ function normalizeLimit(limit?: number): number {
 
 export async function searchNews(params: SearchNewsParams): Promise<Article[]> {
   if (!NEWS_API_KEY) {
-    throw new Error("NEWS_API_KEY is not set. Add it to your backend/.env");
+    throw new Error("NEWS_API_KEY is not set. Add it to backend/.env");
   }
 
   const key = makeCacheKey(params);
@@ -60,7 +60,7 @@ export async function searchNews(params: SearchNewsParams): Promise<Article[]> {
   } = params;
 
   if (!query || !query.trim()) {
-    throw new Error("query is required for search_news");
+    throw new Error("query is required for searchNews");
   }
 
   const pageSize = normalizeLimit(limit);
@@ -74,9 +74,7 @@ export async function searchNews(params: SearchNewsParams): Promise<Article[]> {
   if (to) url.searchParams.set("to", to);
 
   const res = await fetch(url.toString(), {
-    headers: {
-      "X-Api-Key": NEWS_API_KEY,
-    },
+    headers: { "X-Api-Key": NEWS_API_KEY },
   });
 
   if (!res.ok) {
@@ -109,4 +107,3 @@ export async function searchNews(params: SearchNewsParams): Promise<Article[]> {
   cache.set(key, { timestamp: now, data: articles });
   return articles;
 }
-

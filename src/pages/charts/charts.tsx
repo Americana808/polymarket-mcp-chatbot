@@ -1,188 +1,203 @@
-import React, { useState } from 'react';
-import { TradeChart, VolumeChart } from '../../components/custom/TradeChart';
-import { MarketVolumeChart } from '../../components/custom/VolumeChart';
-import { Header } from '../../components/custom/header';
-
-// Mock trade data for testing
-const mockTrades = [
-  {
-    timestamp: new Date(Date.now() - 60000 * 60).toISOString(), // 1 hour ago
-    price: 0.45,
-    amount: 150,
-    side: 'buy' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 50).toISOString(), // 50 min ago
-    price: 0.47,
-    amount: 80,
-    side: 'sell' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 45).toISOString(), // 45 min ago
-    price: 0.48,
-    amount: 200,
-    side: 'sell' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 35).toISOString(), // 35 min ago
-    price: 0.50,
-    amount: 120,
-    side: 'buy' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 30).toISOString(), // 30 min ago
-    price: 0.52,
-    amount: 100,
-    side: 'buy' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 20).toISOString(), // 20 min ago
-    price: 0.51,
-    amount: 90,
-    side: 'sell' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 15).toISOString(), // 15 min ago
-    price: 0.49,
-    amount: 300,
-    side: 'sell' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 10).toISOString(), // 10 min ago
-    price: 0.53,
-    amount: 180,
-    side: 'buy' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 5).toISOString(), // 5 min ago
-    price: 0.50,
-    amount: 250,
-    side: 'sell' as const,
-  },
-  {
-    timestamp: new Date().toISOString(), // now
-    price: 0.51,
-    amount: 175,
-    side: 'buy' as const,
-  },
-];
-
-// Additional mock data for a different market
-const mockSportsTrades = [
-  {
-    timestamp: new Date(Date.now() - 60000 * 40).toISOString(),
-    price: 0.72,
-    amount: 500,
-    side: 'buy' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 25).toISOString(),
-    price: 0.68,
-    amount: 300,
-    side: 'sell' as const,
-  },
-  {
-    timestamp: new Date(Date.now() - 60000 * 10).toISOString(),
-    price: 0.75,
-    amount: 400,
-    side: 'buy' as const,
-  },
-  {
-    timestamp: new Date().toISOString(),
-    price: 0.73,
-    amount: 200,
-    side: 'sell' as const,
-  },
-];
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { TradeChart, VolumeChart } from "../../components/custom/TradeChart";
+import { MarketVolumeChart } from "../../components/custom/VolumeChart";
 
 export function Charts() {
-  const [searchQuery, setSearchQuery] = useState('Bitcoin');
+  // Start empty so user chooses a keyword; placeholder provides examples
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [limit, setLimit] = useState<number>(6);
+
+  // Mock trade data for demo charts
+  const now = Date.now();
+  const mkTrade = (
+    minsAgo: number,
+    price: number,
+    amount: number,
+    side: "buy" | "sell"
+  ) => ({
+    timestamp: new Date(now - minsAgo * 60_000).toISOString(),
+    price,
+    amount,
+    side,
+  });
+
+  const mockTrades = [
+    mkTrade(60, 0.42, 1200, "buy"),
+    mkTrade(45, 0.48, 800, "sell"),
+    mkTrade(30, 0.51, 600, "buy"),
+    mkTrade(15, 0.47, 950, "sell"),
+    mkTrade(5, 0.53, 1500, "buy"),
+  ];
+
+  const mockSportsTrades = [
+    mkTrade(70, 0.35, 700, "buy"),
+    mkTrade(50, 0.4, 500, "sell"),
+    mkTrade(25, 0.55, 900, "buy"),
+    mkTrade(10, 0.5, 650, "sell"),
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-6xl mx-auto p-8 space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-foreground">Live Market Charts</h1>
+    <div className="min-h-dvh bg-black text-white">
+      {/* Top Navigation */}
+      <header className="w-full bg-black/90">
+        <div className="px-6 mx-auto sm:px-8 lg:px-10 flex items-center justify-between h-16 lg:h-20">
+          <Link
+            to="/"
+            className="font-semibold text-white tracking-tight text-lg"
+          >
+            PolyView
+          </Link>
+          <nav className="hidden lg:flex items-center space-x-10 ml-auto text-base">
+            <a
+              href="/#features"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Features
+            </a>
+            <Link
+              to="/charts"
+              className="text-white font-medium transition-colors"
+            >
+              Charts
+            </Link>
+            <Link
+              to="/articles"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Articles
+            </Link>
+            <Link
+              to="/recent"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Recent
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      <div className="mx-auto w-full max-w-6xl px-6 pt-12 pb-20 space-y-14">
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold ">
+            Live Market Charts
+          </h1>
           <p className="text-muted-foreground text-lg">
             Real-time Polymarket data visualization
           </p>
         </div>
-        
+
         {/* Live Volume Chart Section */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-foreground">📊 Market Volume Comparison</h2>
-          <div className="flex gap-4 items-center">
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold">
+            Market Volume Comparison
+          </h2>
+          <div className="flex flex-col md:flex-row gap-4 md:items-center">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search markets (e.g., Bitcoin, Trump, Lakers)"
-              className="flex-1 px-4 py-2 border rounded-md bg-background"
+              placeholder="Enter market keyword (e.g. Bitcoin, Trump, Lakers)"
+              className="flex-1 px-4 py-2 border border-white/20 rounded-md bg-black text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-950"
             />
-            <div className="text-sm text-muted-foreground">
-              Press Enter to search
+            <div className="relative">
+              <select
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="px-3 py-2 pr-9 border border-white/20 rounded-md bg-black text-white w-[140px] focus:outline-none focus:ring-2 focus:ring-gray-950 appearance-none"
+              >
+                <option value={5}>Top 5</option>
+                <option value={6}>Top 6</option>
+                <option value={8}>Top 8</option>
+                <option value={10}>Top 10</option>
+              </select>
+              <svg
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/80"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 011.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </div>
           </div>
-          <MarketVolumeChart query={searchQuery} limit={8} />
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <MarketVolumeChart query={searchQuery} limit={limit} />
+          </div>
         </div>
 
-        {/* Mock Charts Section */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-foreground">📈 Sample Trading Charts (Mock Data)</h2>
-          <p className="text-muted-foreground">
-            These use mock data to demonstrate the chart components
+        {/* Sample Trading Charts (Mock Data) */}
+        <div className="space-y-10">
+          <h2 className="text-2xl font-semibold">
+            Sample Trading Charts (Mock Data)
+          </h2>
+          <p className="text-muted-foreground max-w-2xl leading-relaxed">
+            These examples use mock data to demonstrate pricing and volume
+            visualization components. Replace them with real trade feeds when
+            integrated.
           </p>
-        </div>
-        
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">Political Market Example</h2>
-            <TradeChart 
-              trades={mockTrades}
-              marketName="Trump Wins 2024 Election"
-            />
-            
-            <VolumeChart 
-              trades={mockTrades}
-              marketName="Trump Wins 2024 Election"
-            />
-          </div>
 
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">Sports Market Example</h2>
-            <TradeChart 
-              trades={mockSportsTrades}
-              marketName="Lakers Win Championship 2024"
-            />
-            
-            <VolumeChart 
-              trades={mockSportsTrades}
-              marketName="Lakers Win Championship 2024"
-            />
-          </div>
+          <div className="space-y-12">
+            <div className="space-y-5">
+              <h3 className="text-xl font-medium">Political Market Example</h3>
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <TradeChart
+                    trades={mockTrades}
+                    marketName="Trump Wins 2024 Election"
+                    bare
+                  />
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <VolumeChart
+                    trades={mockTrades}
+                    marketName="Trump Wins 2024 Election"
+                    bare
+                  />
+                </div>
+              </div>
+            </div>
 
-          <div className="bg-card p-6 rounded-lg border">
-            <h3 className="text-xl font-semibold mb-4">Chart Features Test</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-5">
+              <h3 className="text-xl font-medium">Sports Market Example</h3>
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <TradeChart
+                    trades={mockSportsTrades}
+                    marketName="Lakers Win Championship 2024"
+                    bare
+                  />
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <VolumeChart
+                    trades={mockSportsTrades}
+                    marketName="Lakers Win Championship 2024"
+                    bare
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm pt-4">
               <div>
                 <h4 className="font-medium mb-2">TradeChart Features:</h4>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li>• Price line with data points</li>
-                  <li>• Time-based X axis (HH:mm format)</li>
-                  <li>• Percentage Y axis (0-100%)</li>
-                  <li>• Hover tooltips with price/amount</li>
-                  <li>• Responsive container</li>
+                <ul className="space-y-1 text-muted-foreground leading-relaxed">
+                  <li>Price line with data points</li>
+                  <li>Time-based X axis (HH:mm format)</li>
+                  <li>Tooltip showing % price</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-medium mb-2">VolumeChart Features:</h4>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li>• Buy volume (green bars)</li>
-                  <li>• Sell volume (red bars)</li>
-                  <li>• Time aggregation by minute</li>
-                  <li>• Stacked bar visualization</li>
-                  <li>• Volume tooltips</li>
+                <ul className="space-y-1 text-muted-foreground leading-relaxed">
+                  <li>Buy vs Sell stacked bars</li>
+                  <li>Aggregated by minute</li>
+                  <li>Clean legend and tooltips</li>
                 </ul>
               </div>
             </div>
