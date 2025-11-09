@@ -51,6 +51,6 @@ bun run dev
 This project is licensed under the Apache License 2.0.
 
 ## Credits:
-https://github.com/aryankeluskar/polymarket-mcp/blob/master/src/index.ts
-https://newsapi.org/docs/get-started#search
+- https://github.com/aryankeluskar/polymarket-mcp/blob/master/src/index.ts
+- https://newsapi.org/docs/get-started#search
 
