@@ -23,6 +23,8 @@
       "@/*": ["./src/*"]
     },
 
+    // Only valid current value is "5.0"; using unsupported future versions causes TS5103.
+    // If deprecation warnings persist, keep this at "5.0" or remove entirely.
     "ignoreDeprecations": "5.0"
   },
   "include": ["src"]

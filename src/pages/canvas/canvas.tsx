@@ -200,10 +200,10 @@ export function Canvas() {
             </p>
             <div className="grid sm:grid-cols-2 gap-8 mt-10">
               <div className="rounded-xl bg-white/5 border border-white/10 p-5">
-                <h3 className="font-semibold mb-2">Whale Tracker</h3>
+                <h3 className="font-semibold mb-2">Recent Trades</h3>
                 <p className="text-sm text-gray-300">
-                  Watch Polymarket whales and large bets move in real time. See
-                  where the biggest money is flowing before the crowd reacts.
+                  See the latest trades across Polymarket in real time. Filter
+                  by side and explore momentum as it happens.
                 </p>
               </div>
               <div className="rounded-xl bg-white/5 border border-white/10 p-5">
