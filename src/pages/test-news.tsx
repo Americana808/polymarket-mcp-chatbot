@@ -25,9 +25,7 @@ export function TestNews() {
 
         {/* Query Input */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">
-            Search Query
-          </label>
+          <label className="block text-sm font-medium mb-2">Search Query</label>
           <input
             type="text"
             value={query}
@@ -59,7 +57,7 @@ export function TestNews() {
         <div className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-zinc-900">
           <h2 className="text-xl font-semibold mb-4">Results</h2>
           {query ? (
-            <RelatedNews query={query} limit={2} autoOpen={true} />
+            <RelatedNews explicitQuery={query} limit={2} showQuery={true} />
           ) : (
             <p className="text-gray-500">Enter a query to search for news</p>
           )}
@@ -70,7 +68,9 @@ export function TestNews() {
           <h3 className="font-semibold mb-2">Direct API Test</h3>
           <p className="text-sm mb-2">Test the backend directly:</p>
           <a
-            href={`http://localhost:5090/news?q=${encodeURIComponent(query)}&limit=2`}
+            href={`http://localhost:5090/news?q=${encodeURIComponent(
+              query
+            )}&limit=2`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 dark:text-blue-400 hover:underline text-sm"

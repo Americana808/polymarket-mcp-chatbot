@@ -6,7 +6,6 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
@@ -14,16 +13,19 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "ignoreDeprecations": "6.0"
+
+    // Only valid current value is "5.0"; using unsupported future versions causes TS5103.
+    // If deprecation warnings persist, keep this at "5.0" or remove entirely.
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src"]
 }
