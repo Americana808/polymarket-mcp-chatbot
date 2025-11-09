@@ -40,6 +40,7 @@ cd demo/chatbot-ui
 # Install frontend dependencies
 cd frontend
 bun install
+bun add @fortawesome/react-fontawesome@latest @fortawesome/fontawesome-svg-core @fortawesome/free-regular-svg-icons @fortawesome/free-solid-svg-icons
 
 # Install backend dependencies
 cd ../backend

@@ -4,8 +4,13 @@ import { SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { message } from "../../interfaces/interfaces";
 import { MessageActions } from "@/components/custom/actions";
+import { useState } from "react";
+import { RelatedNews } from "@/components/custom/related-news";
+import { MessageChart } from "@/components/custom/MessageChart";
 
 export const PreviewMessage = ({ message }: { message: message }) => {
+  const [showNews, setShowNews] = useState(false);
+
   return (
     <motion.div
       className="w-full mx-auto max-w-3xl px-4 group/message"
@@ -28,6 +33,27 @@ export const PreviewMessage = ({ message }: { message: message }) => {
           {message.content && (
             <div className="flex flex-col gap-4 text-left">
               <Markdown>{message.content}</Markdown>
+              {message.role === "assistant" && (
+                <div className="mt-2 space-y-3">
+                  {/* Auto-detected chart visualization from assistant content */}
+                  <MessageChart content={message.content} />
+
+                  {/* Toggleable related news */}
+                  <div>
+                    <button
+                      onClick={() => setShowNews((v) => !v)}
+                      className="text-xs px-2 py-1 rounded-md border border-zinc-700 hover:bg-zinc-800 transition-colors"
+                    >
+                      {showNews ? "Hide related news" : "Show related news"}
+                    </button>
+                    {showNews && (
+                      <div className="mt-3">
+                        <RelatedNews seed={message.content} limit={4} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

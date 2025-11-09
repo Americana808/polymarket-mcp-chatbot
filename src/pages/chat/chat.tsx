@@ -50,36 +50,52 @@ export function Chat() {
       ...prev,
       { content: messageText, role: "user", id: traceId },
     ]);
+    try {
+      localStorage.setItem("latestUserText", messageText);
+    } catch {}
     socket.send(messageText);
     setQuestion("");
 
     try {
+      let buffer = "";
       const messageHandler = (event: MessageEvent) => {
-        setIsLoading(false);
-        if (event.data.includes("[END]")) {
+        const chunk = event.data;
+        if (chunk.includes("[END]")) {
+          setIsLoading(false);
+          // Final write of buffered assistant content
+          setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage?.role === "assistant") {
+              const finalMsg = { ...lastMessage, content: buffer };
+              const updated = [...prev.slice(0, -1), finalMsg];
+              try {
+                localStorage.setItem("latestAssistantText", buffer);
+              } catch {}
+              return updated;
+            } else {
+              const finalMsg = {
+                content: buffer,
+                role: "assistant",
+                id: traceId,
+              };
+              try {
+                localStorage.setItem("latestAssistantText", buffer);
+              } catch {}
+              return [...prev, finalMsg];
+            }
+          });
+          cleanupMessageHandler();
           return;
         }
 
+        buffer += chunk;
         setMessages((prev) => {
           const lastMessage = prev[prev.length - 1];
-          const newContent =
-            lastMessage?.role === "assistant"
-              ? lastMessage.content + event.data
-              : event.data;
-
-          const newMessage = {
-            content: newContent,
-            role: "assistant",
-            id: traceId,
-          };
-          return lastMessage?.role === "assistant"
-            ? [...prev.slice(0, -1), newMessage]
-            : [...prev, newMessage];
+          if (lastMessage?.role === "assistant") {
+            return [...prev.slice(0, -1), { ...lastMessage, content: buffer }];
+          }
+          return [...prev, { content: buffer, role: "assistant", id: traceId }];
         });
-
-        if (event.data.includes("[END]")) {
-          cleanupMessageHandler();
-        }
       };
 
       messageHandlerRef.current = messageHandler;
