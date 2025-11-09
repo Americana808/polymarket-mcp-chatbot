@@ -7,6 +7,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import * as dotenv from "dotenv";
 import cors from "cors";
 import { SimpleOAuthProvider } from "./oauth-provider.js";
+import { searchNews } from "./news.js";
 
 dotenv.config();
 
@@ -389,6 +390,43 @@ Always explain what the probabilities mean and provide context for the markets y
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Related news search endpoint
+app.get("/news", async (req, res) => {
+  try {
+    const q = (req.query.q as string) || "";
+    const from = (req.query.from as string) || undefined;
+    const to = (req.query.to as string) || undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const language = (req.query.language as string) || undefined;
+    const sortBy = (req.query.sortBy as string) as
+      | "relevancy"
+      | "popularity"
+      | "publishedAt"
+      | undefined;
+
+    console.log(`📰 News API request: query="${q}", limit=${limit}`);
+
+    if (!q.trim()) {
+      return res.status(400).json({ error: "Missing required query parameter 'q'" });
+    }
+
+    const articles = await searchNews({
+      query: q,
+      from,
+      to,
+      limit,
+      language,
+      sortBy,
+    });
+
+    console.log(`📰 Found ${articles.length} articles for query: "${q}"`);
+    res.json({ articles });
+  } catch (err: any) {
+    console.error("/news error:", err);
+    res.status(500).json({ error: err?.message || "Internal server error" });
+  }
+});
 
 // OAuth callback endpoint
 app.get("/oauth/callback", async (req, res) => {

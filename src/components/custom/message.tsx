@@ -4,6 +4,7 @@ import { SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { message } from "../../interfaces/interfaces";
 import { MessageActions } from "@/components/custom/actions";
+import { RelatedNews } from "@/components/custom/related-news";
 
 export const PreviewMessage = ({ message }: { message: message }) => {
   return (
@@ -28,6 +29,9 @@ export const PreviewMessage = ({ message }: { message: message }) => {
           {message.content && (
             <div className="flex flex-col gap-4 text-left">
               <Markdown>{message.content}</Markdown>
+              {message.role === "assistant" && (
+                <RelatedNews query={message.content} />
+              )}
             </div>
           )}
 

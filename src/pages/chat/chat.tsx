@@ -30,6 +30,10 @@ export function Chat() {
   const messageHandlerRef = useRef<((event: MessageEvent) => void) | null>(
     null
   );
+  const messagesRef = useRef<message[]>([]);
+
+  // Keep a live ref to messages for use inside WS handlers
+  messagesRef.current = messages;
 
   const cleanupMessageHandler = () => {
     if (messageHandlerRef.current && socket) {
@@ -50,6 +54,10 @@ export function Chat() {
       ...prev,
       { content: messageText, role: "user", id: traceId },
     ]);
+    // Store the latest user text for keyword extraction seeding
+    try {
+      localStorage.setItem("latestUserText", messageText);
+    } catch {}
     socket.send(messageText);
     setQuestion("");
 
@@ -57,6 +65,14 @@ export function Chat() {
       const messageHandler = (event: MessageEvent) => {
         setIsLoading(false);
         if (event.data.includes("[END]")) {
+          // Persist the latest assistant message content for dashboard news
+          const lastAssistant = [...messagesRef.current].reverse().find(m => m.role === "assistant");
+          if (lastAssistant?.content) {
+            try {
+              localStorage.setItem("latestAssistantText", lastAssistant.content);
+            } catch {}
+          }
+          cleanupMessageHandler();
           return;
         }
 

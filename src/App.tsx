@@ -1,6 +1,7 @@
 import "./App.css";
 import { Chat } from "./pages/chat/chat";
 import { Canvas } from "./pages/canvas/canvas";
+import { TestNews } from "./pages/test-news";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -12,6 +13,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Canvas />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/test-news" element={<TestNews />} />
           </Routes>
         </div>
       </Router>
