@@ -1,9 +1,6 @@
 ## Demo
 [![Thumbnail](https://img.youtube.com/vi/edB_MoEx7mA/0.jpg)](https://www.youtube.com/watch?v=edB_MoEx7mA)
 
-## Devpost submission
-https://devpost.com/software/polyview-y5dg8m
-
 # Deploying Polymarket MCP Chatbot (Backend + Frontend)
 
 This guide shows only what you need to deploy.
