@@ -18,7 +18,8 @@ import { faMessage } from "@fortawesome/free-regular-svg-icons";
 // get the device (instance)'s websocket endpoint
 const proto = window.location.protocol === "https:" ? "wss" : "ws";
 const host = window.location.hostname;
-const socket = new WebSocket(`${proto}://${host}:5090`);
+const backendUrl = import.meta.env.VITE_BACKEND_URL || `${proto}://${host}:5090`;
+const socket = new WebSocket(backendUrl.replace(/^http/, 'ws'));
 
 export function Chat() {
   const [messagesContainerRef, messagesEndRef] =

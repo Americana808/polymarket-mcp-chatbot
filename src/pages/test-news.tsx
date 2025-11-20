@@ -68,14 +68,14 @@ export function TestNews() {
           <h3 className="font-semibold mb-2">Direct API Test</h3>
           <p className="text-sm mb-2">Test the backend directly:</p>
           <a
-            href={`http://localhost:5090/news?q=${encodeURIComponent(
+            href={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5090'}/news?q=${encodeURIComponent(
               query
             )}&limit=2`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
           >
-            http://localhost:5090/news?q={query}&limit=2
+            {(import.meta.env.VITE_BACKEND_URL || 'http://localhost:5090')}/news?q={query}&limit=2
           </a>
         </div>
       </div>

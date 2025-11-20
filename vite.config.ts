@@ -10,7 +10,7 @@ const __dirname = dirname(__filename)
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 8501,
+    port: parseInt(process.env.VITE_FRONTEND_PORT || '8501'),
     watch: {
       usePolling: false,
       interval: 1000

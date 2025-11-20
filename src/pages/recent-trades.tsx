@@ -25,7 +25,8 @@ const RecentTrades: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    const url = new URL("http://localhost:5090/recent-trades");
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5090";
+    const url = new URL(`${backendUrl}/recent-trades`);
     url.searchParams.set("timeWindowHours", String(timeWindowHours));
   // Pagination removed
     // fetchLimit left default (server decides) but could be tuned if needed.

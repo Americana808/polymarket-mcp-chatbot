@@ -92,7 +92,7 @@ export function RelatedNews({
         const params = new URLSearchParams({ q: query, limit: String(limit) });
         const proto = window.location.protocol === "https:" ? "https" : "http";
         const host = window.location.hostname;
-        const base = `${proto}://${host}:5090`;
+        const base = import.meta.env.VITE_BACKEND_URL || `${proto}://${host}:5090`;
         // Debug logs help validate the derived query
         if (typeof window !== "undefined" && (window as any).console) {
           try {

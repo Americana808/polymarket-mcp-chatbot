@@ -41,7 +41,8 @@ export const MarketProbabilityChart: React.FC<ProbabilityChartProps> = ({ query,
       setError(null);
       
       try {
-        const response = await fetch(`http://localhost:5090/market-probabilities?query=${encodeURIComponent(query)}&limit=${limit}`);
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5090';
+        const response = await fetch(`${backendUrl}/market-probabilities?query=${encodeURIComponent(query)}&limit=${limit}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.statusText}`);
